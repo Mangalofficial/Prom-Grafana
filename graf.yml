@@ -1,0 +1,62 @@
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: graf-pvc
+  labels:
+    app: grafana
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: graf
+  labels:
+    app: grafana
+spec:
+  selector:
+    app: grafana
+  type: NodePort
+  ports:
+  - nodePort: 32510
+    port: 3000
+    targetPort: 3000
+
+---
+apiVersion: apps/v1 
+kind: Deployment
+metadata:
+  name: mygraf
+  labels:
+    app: grafana
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: grafana
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: grafana
+    spec:
+      containers:
+      - image: manglam240/grafana:latest
+        imagePullPolicy: IfNotPresent
+        name: graf-os
+        ports:
+        - containerPort: 3000
+        volumeMounts:
+        - name: graf-volume
+          mountPath: "/var/lib/grafana"
+      volumes:
+      - name: graf-volume
+        persistentVolumeClaim:
+          claimName: graf-pvc

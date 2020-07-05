@@ -51,12 +51,22 @@ spec:
       - image: manglam240/prometheus:latest
         imagePullPolicy: IfNotPresent
         name: prom-os
+        args:
+            - "--config.file=/etc/prometheus/prometheus.yml"
+            - "--storage.tsdb.path=/prometheus/"
         ports:
         - containerPort: 9090 
         volumeMounts:
         - name: prom-volume
-          mountPath: "/metrics"
+          mountPath: /etc/prometheus/
+        - name: prometheus-volume
+          mountPath: /prometheus/
       volumes:
       - name: prom-volume
+        configMap:
+          defaultMode: 420
+          name: prom-volume 
+
+      - name: prometheus-volume
         persistentVolumeClaim:
           claimName: prom-pvc
